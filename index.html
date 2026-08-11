@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YOur love</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #050005;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Background Matrix Canvas (Stays active permanently) */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Stage 2: Interactive Birthday Card Container */
+    #card-stage {
+      position: absolute;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease;
+    }
+
+    #card-stage.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Interactive Book / Card */
+    .book {
+      width: clamp(150px, 22vw, 180px);
+      height: clamp(200px, 30vw, 240px);
+      position: relative;
+      perspective: 1000px;
+      cursor: pointer;
+      transition: width 0.6s ease;
+      animation: bookFloat 3s ease-in-out infinite;
+    }
+
+    .book.open {
+      width: clamp(280px, 42vw, 340px);
+      animation: none;
+    }
+
+    @keyframes bookFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Front Cover */
+    .cover {
+      position: absolute;
+      width: clamp(150px, 22vw, 180px);
+      height: clamp(200px, 30vw, 240px);
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(255, 105, 180, 0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+      transform-origin: left;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid #ffb6c1;
+    }
+
+    .book.open .cover {
+      transform: rotateY(-180deg);
+      pointer-events: none;
+    }
+
+    .paw-icon {
+      width: clamp(60px, 9vw, 90px);
+      height: clamp(60px, 9vw, 90px);
+      fill: none;
+      stroke: #222;
+      stroke-width: 2.5;
+    }
+
+    .tap-hint {
+      margin-top: 15px;
+      font-size: clamp(0.7rem, 1.6vw, 0.85rem);
+      color: #ff2a85;
+      font-weight: bold;
+      animation: pulse 1.5s infinite;
+      direction: ltr; /* Forces normal text orientation */
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Inside Card Pages */
+    .inside-pages {
+      position: absolute;
+      width: clamp(280px, 42vw, 340px);
+      height: clamp(200px, 30vw, 240px);
+      background: #fdfafb;
+      border-radius: 12px;
+      display: flex;
+      box-shadow: 0 0 30px rgba(255, 182, 193, 0.5);
+      border: 2px solid #ffb6c1;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease 0.3s;
+    }
+
+    .book.open .inside-pages {
+      opacity: 1;
+    }
+
+    .page {
+      flex: 1;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .page-left {
+      border-right: 1px dashed #ffd1dc;
+      background: #fff0f5;
+    }
+
+    .doodle-svg {
+      width: 100%;
+      height: auto;
+      max-height: 90px;
+    }
+
+    .gift-image {
+      width: 100%;
+      max-height: 80px;
+      object-fit: contain;
+      margin-top: 6px;
+    }
+
+    .card-wish {
+      font-size: clamp(1rem, 2.4vw, 1.3rem);
+      font-weight: 900;
+      color: #ff007f;
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+
+    .card-note {
+      font-size: clamp(0.7rem, 1.6vw, 0.85rem);
+      color: #555;
+      margin-top: 6px;
+      line-height: 1.4;
+      padding: 0 6px;
+    }
+
+    .next-btn {
+      margin-top: 25px;
+      padding: 10px 24px;
+      background: linear-gradient(45deg, #ff66b2, #ff007f);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.6s ease, transform 0.5s ease;
+      pointer-events: none;
+    }
+
+    .next-btn.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* Stage 3: Cat Celebration Stage */
+    #celebration-stage {
+      position: absolute;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease;
+    }
+
+    #celebration-stage.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cat-card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: clamp(14px, 3vw, 20px);
+      border-radius: 20px;
+      box-shadow: 0 0 35px rgba(255, 105, 180, 0.7);
+      text-align: center;
+      max-width: min(90vw, 320px);
+      animation: cardGlow 2.2s ease-in-out infinite, cardPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes cardGlow {
+      0%, 100% { box-shadow: 0 0 35px rgba(255, 105, 180, 0.7); }
+      50% { box-shadow: 0 0 55px rgba(255, 0, 127, 0.9); }
+    }
+
+    @keyframes cardPop {
+      0% { transform: scale(0.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .cat-card img {
+      width: 100%;
+      border-radius: 12px;
+      display: block;
+    }
+
+    .hbd-banner {
+      font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+      font-weight: 900;
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, #ff007f, #ff66b2, #9b51e0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+    }
+
+    /* Rotate-device prompt: phones only. Tablets/iPad and PC skip this and just auto-fit. */
+    #rotate-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: #050005;
+      color: #fff;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #rotate-overlay .rotate-icon {
+      font-size: 3rem;
+      animation: rotateHint 1.6s ease-in-out infinite;
+    }
+
+    #rotate-overlay p {
+      margin-top: 14px;
+      font-size: 1rem;
+      color: #ff9ebb;
+      font-weight: bold;
+    }
+
+    @keyframes rotateHint {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(90deg); }
+    }
+
+    /* Only phones (narrow width) in portrait get the prompt; tablets/iPad stay untouched */
+    @media (max-width: 600px) and (orientation: portrait) {
+      #rotate-overlay {
+        display: flex;
+      }
+      #card-stage, #celebration-stage, canvas {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Phone-only prompt: shown when a phone is held in portrait. Tablets/PC never see this. -->
+  <div id="rotate-overlay">
+    <div class="rotate-icon">🔄</div>
+    <p>Rotate your device to landscape<br>for the full experience ^ ^</p>
+  </div>
+
+  <!-- Background Canvas -->
+  <canvas id="mainCanvas"></canvas>
+
+  <!-- Stage 2: Interactive Birthday Card -->
+  <div id="card-stage">
+    <div class="book" id="birthdayBook">
+      <div class="cover">
+        <svg class="paw-icon" viewBox="0 0 100 100">
+          <path d="M 30,55 C 20,55 15,70 25,82 C 35,92 65,92 75,82 C 85,70 80,55 70,55 C 55,45 45,45 30,55 Z" fill="none" stroke="#333" stroke-width="3"/>
+          <ellipse cx="25" cy="40" rx="8" ry="12" fill="none" stroke="#333" stroke-width="3"/>
+          <ellipse cx="42" cy="30" rx="8" ry="12" fill="none" stroke="#333" stroke-width="3"/>
+          <ellipse cx="58" cy="30" rx="8" ry="12" fill="none" stroke="#333" stroke-width="3"/>
+          <ellipse cx="75" cy="40" rx="8" ry="12" fill="none" stroke="#333" stroke-width="3"/>
+        </svg>
+        <div class="tap-hint">Tap to open 💌</div>
+      </div>
+
+      <div class="inside-pages">
+        <div class="page page-left">
+          <svg class="doodle-svg" viewBox="0 0 100 120">
+            <polygon points="50,15 35,50 65,50" fill="none" stroke="#333" stroke-width="2.5"/>
+            <circle cx="50" cy="12" r="3" fill="#333"/>
+            <line x1="40" y1="30" x2="60" y2="35" stroke="#333" stroke-width="2"/>
+            <ellipse cx="38" cy="70" rx="4" ry="6" fill="#333"/>
+            <ellipse cx="62" cy="70" rx="4" ry="6" fill="#333"/>
+            <path d="M 45,82 Q 50,88 55,82" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="30" cy="76" r="4" fill="#ffb6c1" opacity="0.6"/>
+            <circle cx="70" cy="76" r="4" fill="#ffb6c1" opacity="0.6"/>
+          </svg>
+        </div>
+
+        <div class="page">
+          <!--
+            IMAGE NOTE: to make this show up for EVERY visitor once deployed on Vercel:
+            1) Put your photo file (e.g. photo.jpg) inside a "public" folder in your project root.
+            2) Reference it here as a root path: src="/photo.jpg"  (NOT "C:/Users/..." or a local file path — that only works on your own machine).
+            Vercel serves everything in /public automatically at that same root path for all visitors.
+            Alternative: upload the photo to an image host (imgur, Cloudinary, etc.) and paste that https:// link as src instead.
+          -->
+          <img
+            class="gift-image"
+            src="https://www.pexels.com/photo/adorable-black-and-white-cat-sitting-indoors-32557420/"
+            alt="A little memory for you"
+            onerror="this.style.display='none'; document.getElementById('imgFallback').style.display='block';"
+          >
+          <svg id="imgFallback" class="doodle-svg" style="display:none" viewBox="0 0 100 100">
+            <line x1="50" y1="25" x2="50" y2="38" stroke="#333" stroke-width="2.5"/>
+            <path d="M 50,18 Q 47,22 50,25 Q 53,22 50,18 Z" fill="#ffb6c1" stroke="#333" stroke-width="1.5"/>
+            <rect x="30" y="38" width="40" height="20" rx="3" fill="none" stroke="#333" stroke-width="2.5"/>
+            <rect x="22" y="58" width="56" height="25" rx="3" fill="none" stroke="#333" stroke-width="2.5"/>
+            <path d="M 15,25 L 18,30 L 15,35 L 12,30 Z" fill="#333"/>
+            <path d="M 82,30 L 85,35 L 82,40 L 79,35 Z" fill="#333"/>
+          </svg>
+          <div class="card-wish">Lets go for date</div>
+          <div class="card-note"><3</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="next-btn" id="nextBtn">See Gift ❤️</button>
+  </div>
+
+  <!-- Stage 3: Cat Celebration Stage -->
+  <div id="celebration-stage">
+    <div class="cat-card">
+      <div class="hbd-banner"><33</div>
+      <img src="https://media.tenor.com/gU21wAAtmY8AAAAC/tkthao219-bubududu.gif" alt="You're my sunsine<3">
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const cardStage = document.getElementById('card-stage');
+    const book = document.getElementById('birthdayBook');
+    const nextBtn = document.getElementById('nextBtn');
+    const celebrationStage = document.getElementById('celebration-stage');
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initMatrix();
+      initStars();
+    });
+
+    /* =========================================
+       SLOW MATRIX DIGITAL RAIN (RUNS PERMANENTLY)
+    ========================================= */
+    const chars = 'HAPPYBIRTHDAY♥★0123456789';
+    const fontSize = 16;
+    let columns = Math.floor(width / fontSize);
+    let drops = [];
+
+    function initMatrix() {
+      columns = Math.floor(width / fontSize);
+      drops = [];
+      for (let i = 0; i < columns; i++) {
+        drops[i] = Math.random() * -50;
+      }
+    }
+    initMatrix();
+
+    initMatrix();
+
+    /* =========================================
+       TWINKLING STARFIELD (subtle, always behind everything)
+    ========================================= */
+    const stars = [];
+    function initStars() {
+      stars.length = 0;
+      for (let i = 0; i < 60; i++) {
+        stars.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 1.3 + 0.3,
+          phase: Math.random() * Math.PI * 2,
+          speed: Math.random() * 0.02 + 0.01
+        });
+      }
+    }
+    initStars();
+
+    function drawStars() {
+      for (const s of stars) {
+        s.phase += s.speed;
+        const a = (Math.sin(s.phase) + 1) / 2 * 0.6 + 0.1;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function drawMatrix() {
+      // Continuous background fade so matrix streams keep flowing smoothly
+      ctx.fillStyle = 'rgba(5, 0, 5, 0.08)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        const x = i * fontSize;
+        const y = Math.floor(drops[i]) * fontSize;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(char, x, y);
+
+        ctx.fillStyle = '#ff2a85';
+        ctx.fillText(char, x, y - fontSize);
+
+        if (y > height && Math.random() > 0.98) {
+          drops[i] = 0;
+        }
+
+        drops[i] += 0.28;
+      }
+    }
+
+    /* =========================================
+       TEXT MADE OF PARTICLES (PINK ONLY)
+    ========================================= */
+    const sampleCanvas = document.createElement('canvas');
+    const sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
+    const textParticles = [];
+    let dissolvingText = false;
+    let burstMode = false;
+
+    class TextParticle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.targetX = x;
+        this.targetY = y;
+        this.radius = Math.random() * 1.5 + 0.8;
+        this.ease = 0.06 + Math.random() * 0.05; 
+        this.alpha = 1;
+        this.vx = 0;
+        this.vy = 0;
+        
+        const pinkShades = ['#ff66b2', '#ff007f', '#ff1493', '#ff69b4', '#ffb6c1'];
+        this.color = pinkShades[Math.floor(Math.random() * pinkShades.length)];
+      }
+
+      update(dissolve) {
+        if (burstMode) {
+          // firework-style outward launch, gravity pulls it back down, fades out
+          this.vy += 0.06;
+          this.x += this.vx;
+          this.y += this.vy;
+          this.alpha -= 0.012;
+        } else if (dissolve) {
+          this.x += (Math.random() - 0.5) * 8;
+          this.y += (Math.random() - 0.5) * 8;
+          this.alpha -= 0.03;
+        } else {
+          this.x += (this.targetX - this.x) * this.ease;
+          this.y += (this.targetY - this.y) * this.ease;
+          this.alpha = Math.min(1, this.alpha + 0.05);
+        }
+      }
+
+      draw() {
+        if (this.alpha <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = burstMode ? 8 : 0;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function buildTextParticles(word) {
+      sampleCanvas.width = width;
+      sampleCanvas.height = height;
+      sampleCtx.clearRect(0, 0, width, height);
+
+      const fontPx = Math.min(140, Math.floor((width * 0.9) / (word.length * 0.6 + 1)) || 90);
+      sampleCtx.font = `900 ${fontPx}px Arial`;
+      sampleCtx.textAlign = 'center';
+      sampleCtx.textBaseline = 'middle';
+      sampleCtx.fillStyle = '#fff';
+      sampleCtx.fillText(word, width / 2, height / 2);
+
+      const imgData = sampleCtx.getImageData(0, 0, width, height).data;
+      const points = [];
+      const step = 4;
+
+      for (let y = 0; y < height; y += step) {
+        for (let x = 0; x < width; x += step) {
+          const alpha = imgData[(y * width + x) * 4 + 3];
+          if (alpha > 128) {
+            points.push({ 
+              x: x + (Math.random() - 0.5) * 2.5, 
+              y: y + (Math.random() - 0.5) * 2.5 
+            });
+          }
+        }
+      }
+
+      points.sort(() => Math.random() - 0.5);
+      applyPointsToParticles(points);
+    }
+
+    // Parametric heart curve -> point cloud, same particle pool reused
+    function buildHeartParticles() {
+      const points = [];
+      const scale = Math.min(width, height) * 0.022;
+      const cx = width / 2;
+      const cy = height / 2 + scale * 2;
+
+      for (let t = 0; t < Math.PI * 2; t += 0.02) {
+        const hx = 16 * Math.pow(Math.sin(t), 3);
+        const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        // outline point
+        points.push({ x: cx + hx * scale, y: cy + hy * scale });
+        // fill points scattered inward toward center for a solid look
+        for (let f = 0.2; f < 1; f += 0.2) {
+          points.push({
+            x: cx + hx * scale * f + (Math.random() - 0.5) * 4,
+            y: cy + hy * scale * f + (Math.random() - 0.5) * 4
+          });
+        }
+      }
+
+      points.sort(() => Math.random() - 0.5);
+      applyPointsToParticles(points);
+    }
+
+    function applyPointsToParticles(points) {
+      if (textParticles.length < points.length) {
+        const diff = points.length - textParticles.length;
+        for (let i = 0; i < diff; i++) {
+          textParticles.push(new TextParticle(width / 2, height / 2));
+        }
+      } else if (textParticles.length > points.length) {
+        textParticles.splice(points.length);
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        textParticles[i].targetX = points[i].x;
+        textParticles[i].targetY = points[i].y;
+      }
+    }
+
+    // Launch every current particle outward from center like a firework burst
+    function launchBurst() {
+      burstMode = true;
+      const cx = width / 2;
+      const cy = height / 2;
+      for (const p of textParticles) {
+        const angle = Math.atan2(p.y - cy, p.x - cx) || Math.random() * Math.PI * 2;
+        const speed = 3 + Math.random() * 6;
+        p.vx = Math.cos(angle) * speed;
+        p.vy = Math.sin(angle) * speed - 3; // extra upward kick
+        p.alpha = 1;
+      }
+    }
+
+    /* =========================================
+       MOUSE / TOUCH SPARK TRAIL (extra bit of magic)
+    ========================================= */
+    const sparks = [];
+    class Spark {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5 - 0.5;
+        this.radius = Math.random() * 2 + 1;
+        this.alpha = 1;
+        const shades = ['#ffffff', '#ff66b2', '#ff007f'];
+        this.color = shades[Math.floor(Math.random() * shades.length)];
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= 0.025;
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function spawnSparks(x, y) {
+      for (let i = 0; i < 3; i++) {
+        sparks.push(new Spark(x, y));
+      }
+      if (sparks.length > 200) sparks.splice(0, sparks.length - 200);
+    }
+
+    window.addEventListener('mousemove', (e) => spawnSparks(e.clientX, e.clientY));
+    window.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      if (t) spawnSparks(t.clientX, t.clientY);
+    }, { passive: true });
+
+    /* =========================================
+       CELEBRATION STAGE EXTRAS: confetti rain + random fireworks
+    ========================================= */
+    let celebrating = false;
+    const confetti = [];
+
+    class Confetti {
+      constructor() {
+        this.reset();
+        this.y = Math.random() * -height; // pre-seed above screen so it isn't empty at start
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = -20;
+        this.w = Math.random() * 6 + 4;
+        this.h = Math.random() * 10 + 6;
+        this.vy = Math.random() * 2 + 1.5;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.rot = Math.random() * Math.PI;
+        this.vrot = (Math.random() - 0.5) * 0.2;
+        const shades = ['#ff66b2', '#ff007f', '#ffffff', '#ffb6c1', '#9b51e0'];
+        this.color = shades[Math.floor(Math.random() * shades.length)];
+      }
+      update() {
+        this.y += this.vy;
+        this.x += this.vx;
+        this.rot += this.vrot;
+        if (this.y > height + 20) this.reset();
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rot);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+        ctx.restore();
+      }
+    }
+
+    function initConfetti() {
+      confetti.length = 0;
+      for (let i = 0; i < 90; i++) confetti.push(new Confetti());
+    }
+
+    // Floating hearts drifting upward during the celebration stage
+    class FloatingHeart {
+      constructor() {
+        this.reset();
+        this.y = height + Math.random() * height; // pre-seed staggered start heights
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = height + 20;
+        this.size = Math.random() * 16 + 14;
+        this.vy = Math.random() * 0.8 + 0.6;
+        this.sway = Math.random() * Math.PI * 2;
+        this.swaySpeed = Math.random() * 0.02 + 0.01;
+        this.alpha = Math.random() * 0.5 + 0.5;
+        const shades = ['#ff66b2', '#ff007f', '#ff98c6', '#ffffff'];
+        this.color = shades[Math.floor(Math.random() * shades.length)];
+      }
+      update() {
+        this.y -= this.vy;
+        this.sway += this.swaySpeed;
+        this.x += Math.sin(this.sway) * 0.6;
+        if (this.y < -30) this.reset();
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.font = `${this.size}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('❤', this.x, this.y);
+        ctx.restore();
+      }
+    }
+
+    const floatingHearts = [];
+    function initFloatingHearts() {
+      floatingHearts.length = 0;
+      for (let i = 0; i < 22; i++) floatingHearts.push(new FloatingHeart());
+    }
+
+    // Big low-opacity heart made of binary digits (0/1), pulsing behind the gift card
+    let binaryClock = 0;
+    function drawBinaryHeart() {
+      binaryClock += 1;
+      const pulse = 1 + Math.sin(binaryClock * 0.02) * 0.06;
+      const scale = Math.min(width, height) * 0.024 * pulse;
+      const cx = width / 2;
+      const cy = height / 2;
+
+      ctx.save();
+      ctx.font = '13px monospace';
+      ctx.textAlign = 'center';
+      for (let a = 0; a < Math.PI * 2; a += 0.13) {
+        const hx = 16 * Math.pow(Math.sin(a), 3);
+        const hy = -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a));
+        const x = cx + hx * scale;
+        const y = cy + hy * scale;
+        ctx.globalAlpha = 0.12 + Math.random() * 0.08;
+        ctx.fillStyle = Math.random() < 0.5 ? '#ff007f' : '#ffffff';
+        ctx.fillText(Math.random() < 0.5 ? '0' : '1', x, y);
+      }
+      ctx.restore();
+    }
+
+    function startCelebrationExtras() {
+      celebrating = true;
+      initConfetti();
+      initFloatingHearts();
+    }
+
+    /* =========================================
+       ANIMATION LOOP (MATRIX KEEPS RUNNING)
+    ========================================= */
+    function animate() {
+      drawStars();
+      drawMatrix(); // Matrix rain stays active continuously in the background
+      
+      for (let i = textParticles.length - 1; i >= 0; i--) {
+        const tp = textParticles[i];
+        tp.update(dissolvingText);
+        tp.draw();
+        if ((dissolvingText || burstMode) && tp.alpha <= 0) {
+          textParticles.splice(i, 1);
+        }
+      }
+
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.update();
+        s.draw();
+        if (s.alpha <= 0) sparks.splice(i, 1);
+      }
+
+      if (celebrating) {
+        drawBinaryHeart();
+        for (const c of confetti) {
+          c.update();
+          c.draw();
+        }
+        for (const h of floatingHearts) {
+          h.update();
+          h.draw();
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    /* =========================================
+       SEQUENCE FLOW 
+    ========================================= */
+    function showWord(word, duration) {
+      return new Promise((resolve) => {
+        dissolvingText = false; 
+        burstMode = false;
+        buildTextParticles(word); 
+        setTimeout(resolve, duration);
+      });
+    }
+
+    async function runSequence() {
+      // Brief matrix introduction
+      await new Promise(r => setTimeout(r, 2800));
+
+      // Countdown Sequence (3 -> 2 -> 1)
+      await showWord("3", 1100);
+      await showWord("2", 1100);
+      await showWord("1", 1100);
+
+      // Message Sequence
+      await showWord("I", 2200);
+      await showWord("Love", 2200);
+      await showWord("YOU", 2200);
+      await showWord("my", 1800);
+      await showWord("lovely", 1800);
+       await showWord(" Girl<3", 1800);
+
+      // CRAZY FINALE: letters morph into a beating heart, then fireworks out
+      dissolvingText = false;
+      burstMode = false;
+      buildHeartParticles();
+      await new Promise(r => setTimeout(r, 1400));
+
+      launchBurst();
+      await new Promise(r => setTimeout(r, 1000));
+
+      // Show Interactive Birthday Card
+      cardStage.classList.add('show');
+    }
+
+    /* =========================================
+       INTERACTION HANDLERS 
+    ========================================= */
+    book.addEventListener('click', () => {
+      if (!book.classList.contains('open')) {
+        book.classList.add('open');
+        const rect = book.getBoundingClientRect();
+        for (let i = 0; i < 14; i++) {
+          floatingHearts.push(Object.assign(new FloatingHeart(), {
+            x: rect.left + rect.width / 2 + (Math.random() - 0.5) * 60,
+            y: rect.top + rect.height / 2,
+            vy: Math.random() * 1.5 + 1,
+            size: Math.random() * 14 + 10
+          }));
+        }
+        celebrating = true; // let the loop draw/update these hearts even before the gift stage
+        setTimeout(() => {
+          nextBtn.classList.add('show');
+        }, 800);
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      cardStage.classList.remove('show');
+      setTimeout(() => {
+        celebrationStage.classList.add('show');
+        startCelebrationExtras(); // confetti rain + floating hearts from here on
+      }, 500);
+    });
+
+    runSequence();
+  </script>
+</body>
+</html>
