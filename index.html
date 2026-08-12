@@ -22,7 +22,7 @@
       align-items: center;
     }
 
-    /* Background Matrix Canvas (Stays active permanently) */
+    /* Background Matrix Canvas */
     canvas {
       position: absolute;
       top: 0;
@@ -50,7 +50,6 @@
       pointer-events: auto;
     }
 
-    /* Interactive Book / Card */
     .book {
       width: clamp(150px, 22vw, 180px);
       height: clamp(200px, 30vw, 240px);
@@ -71,7 +70,6 @@
       50% { transform: translateY(-10px); }
     }
 
-    /* Front Cover */
     .cover {
       position: absolute;
       width: clamp(150px, 22vw, 180px);
@@ -108,7 +106,7 @@
       color: #ff2a85;
       font-weight: bold;
       animation: pulse 1.5s infinite;
-      direction: ltr; /* Forces normal text orientation */
+      direction: ltr;
     }
 
     @keyframes pulse {
@@ -116,7 +114,6 @@
       50% { opacity: 1; transform: scale(1.05); }
     }
 
-    /* Inside Card Pages */
     .inside-pages {
       position: absolute;
       width: clamp(280px, 42vw, 340px);
@@ -201,7 +198,7 @@
       pointer-events: auto;
     }
 
-    /* Stage 3: Cat Celebration Stage */
+    /* Stage 3: Celebration Stage */
     #celebration-stage {
       position: absolute;
       z-index: 4;
@@ -212,6 +209,8 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 1.5s ease;
+      width: 100%;
+      padding: 15px;
     }
 
     #celebration-stage.show {
@@ -220,12 +219,12 @@
     }
 
     .cat-card {
-      background: rgba(255, 255, 255, 0.95);
-      padding: clamp(14px, 3vw, 20px);
+      background: rgba(255, 255, 255, 0.96);
+      padding: 20px;
       border-radius: 20px;
       box-shadow: 0 0 35px rgba(255, 105, 180, 0.7);
       text-align: center;
-      max-width: min(90vw, 320px);
+      width: min(90vw, 340px);
       animation: cardGlow 2.2s ease-in-out infinite, cardPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
@@ -239,72 +238,86 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    .cat-card img {
+    .reveal-gif {
       width: 100%;
+      height: 160px;
+      object-fit: cover;
       border-radius: 12px;
       display: block;
+      margin: 10px 0;
     }
 
     .hbd-banner {
-      font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+      font-size: clamp(1.2rem, 3.5vw, 1.6rem);
       font-weight: 900;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       background: linear-gradient(45deg, #ff007f, #ff66b2, #9b51e0);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
     }
 
-    /* Rotate-device prompt: phones only. Tablets/iPad and PC skip this and just auto-fit. */
-    #rotate-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 50;
-      background: #050005;
-      color: #fff;
-      flex-direction: column;
-      align-items: center;
+    /* Date Badges to fill the card nicely */
+    .date-details {
+      margin-top: 10px;
+    }
+
+    .date-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       justify-content: center;
-      text-align: center;
-      padding: 20px;
+      margin-top: 10px;
     }
 
-    #rotate-overlay .rotate-icon {
-      font-size: 3rem;
-      animation: rotateHint 1.6s ease-in-out infinite;
-    }
-
-    #rotate-overlay p {
-      margin-top: 14px;
-      font-size: 1rem;
-      color: #ff9ebb;
+    .badge {
+      background: #fff0f5;
+      border: 1.5px solid #ffb6c1;
+      color: #ff007f;
+      padding: 6px 12px;
+      border-radius: 15px;
+      font-size: 0.8rem;
       font-weight: bold;
     }
 
-    @keyframes rotateHint {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(90deg); }
+    /* Spicy Button Chase Styling */
+    .spicy-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
     }
 
-    /* Only phones (narrow width) in portrait get the prompt; tablets/iPad stay untouched */
-    @media (max-width: 600px) and (orientation: portrait) {
-      #rotate-overlay {
-        display: flex;
-      }
-      #card-stage, #celebration-stage, canvas {
-        display: none;
-      }
+    .spicy-btn {
+      padding: 12px 28px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      z-index: 99;
+      touch-action: manipulation;
+    }
+
+    .yes-btn {
+      background: linear-gradient(45deg, #ff007f, #ff66b2);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+    }
+
+    .yes-btn:active, .yes-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(255, 0, 127, 0.6);
+    }
+
+    .no-btn {
+      background: #e0e0e0;
+      color: #555;
     }
   </style>
 </head>
 <body>
-
-  <!-- Phone-only prompt: shown when a phone is held in portrait. Tablets/PC never see this. -->
-  <div id="rotate-overlay">
-    <div class="rotate-icon">🔄</div>
-    <p>Rotate your device to landscape<br>for the full experience ^ ^</p>
-  </div>
 
   <!-- Background Canvas -->
   <canvas id="mainCanvas"></canvas>
@@ -338,16 +351,9 @@
         </div>
 
         <div class="page">
-          <!--
-            IMAGE NOTE: to make this show up for EVERY visitor once deployed on Vercel:
-            1) Put your photo file (e.g. photo.jpg) inside a "public" folder in your project root.
-            2) Reference it here as a root path: src="/photo.jpg"  (NOT "C:/Users/..." or a local file path — that only works on your own machine).
-            Vercel serves everything in /public automatically at that same root path for all visitors.
-            Alternative: upload the photo to an image host (imgur, Cloudinary, etc.) and paste that https:// link as src instead.
-          -->
           <img
             class="gift-image"
-            src="https://www.pexels.com/photo/adorable-black-and-white-cat-sitting-indoors-32557420/"
+            src="https://images.pexels.com/photos/3255742/pexels-photo-3255742.jpeg?auto=compress&cs=tinysrgb&w=300"
             alt="A little memory for you"
             onerror="this.style.display='none'; document.getElementById('imgFallback').style.display='block';"
           >
@@ -356,11 +362,9 @@
             <path d="M 50,18 Q 47,22 50,25 Q 53,22 50,18 Z" fill="#ffb6c1" stroke="#333" stroke-width="1.5"/>
             <rect x="30" y="38" width="40" height="20" rx="3" fill="none" stroke="#333" stroke-width="2.5"/>
             <rect x="22" y="58" width="56" height="25" rx="3" fill="none" stroke="#333" stroke-width="2.5"/>
-            <path d="M 15,25 L 18,30 L 15,35 L 12,30 Z" fill="#333"/>
-            <path d="M 82,30 L 85,35 L 82,40 L 79,35 Z" fill="#333"/>
           </svg>
           <div class="card-wish">Lets go for date</div>
-          <div class="card-note"><3</div>
+          <div class="card-note">&lt;3</div>
         </div>
       </div>
     </div>
@@ -368,11 +372,38 @@
     <button class="next-btn" id="nextBtn">See Gift ❤️</button>
   </div>
 
-  <!-- Stage 3: Cat Celebration Stage -->
+  <!-- Stage 3: Celebration Stage -->
   <div id="celebration-stage">
-    <div class="cat-card">
-      <div class="hbd-banner"><33</div>
-      <img src="https://media.tenor.com/gU21wAAtmY8AAAAC/tkthao219-bubududu.gif" alt="You're my sunsine<3">
+    <div class="cat-card" id="spicy-card">
+      
+      <!-- Question Section -->
+      <div id="question-container">
+        <div class="hbd-banner">Are you ready to skip the cake and get to the good part? 😏</div>
+        <div class="spicy-buttons">
+          <button class="spicy-btn yes-btn" id="yesBtn">YES 😈</button>
+          <button class="spicy-btn no-btn" id="noBtn">NO 😇</button>
+        </div>
+      </div>
+
+      <!-- Final Reveal Section (Displays after YES is clicked) -->
+      <div id="final-reveal" style="display: none;">
+        <div class="hbd-banner">Wanna go for a date? 🎀</div>
+        
+        <!-- Reliable Animated Hug GIF -->
+        <img class="reveal-gif" src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3AxdDY2bXN2eHllNW01YXo0Ymt3dG8zbW40dWVic3B0YmxrbWk2ciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LpDmM2wSt6Hm5fKJVa/giphy.gif" alt="Cute Hug">
+
+        <!-- Cute Interactive Date Badges -->
+        <div class="date-details">
+          <p style="font-weight: bold; color: #ff007f; font-size: 0.95rem;">Pick your dream date: 💖</p>
+          <div class="date-options">
+            <span class="badge">🍕 Cozy Dinner</span>
+            <span class="badge">🍦 Ice Cream</span>
+            <span class="badge">🎬 Movie Night</span>
+          </div>
+          <p style="margin-top: 10px; font-size: 0.85rem; color: #666; font-weight: 600;">(You pick the day & place! 😘)</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -394,9 +425,7 @@
       initStars();
     });
 
-    /* =========================================
-       SLOW MATRIX DIGITAL RAIN (RUNS PERMANENTLY)
-    ========================================= */
+    /* Matrix Digital Rain */
     const chars = 'HAPPYBIRTHDAY♥★0123456789';
     const fontSize = 16;
     let columns = Math.floor(width / fontSize);
@@ -411,11 +440,7 @@
     }
     initMatrix();
 
-    initMatrix();
-
-    /* =========================================
-       TWINKLING STARFIELD (subtle, always behind everything)
-    ========================================= */
+    /* Starfield */
     const stars = [];
     function initStars() {
       stars.length = 0;
@@ -446,10 +471,8 @@
     }
 
     function drawMatrix() {
-      // Continuous background fade so matrix streams keep flowing smoothly
       ctx.fillStyle = 'rgba(5, 0, 5, 0.08)';
       ctx.fillRect(0, 0, width, height);
-
       ctx.font = `${fontSize}px monospace`;
 
       for (let i = 0; i < drops.length; i++) {
@@ -466,14 +489,11 @@
         if (y > height && Math.random() > 0.98) {
           drops[i] = 0;
         }
-
         drops[i] += 0.28;
       }
     }
 
-    /* =========================================
-       TEXT MADE OF PARTICLES (PINK ONLY)
-    ========================================= */
+    /* Particles */
     const sampleCanvas = document.createElement('canvas');
     const sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
     const textParticles = [];
@@ -498,7 +518,6 @@
 
       update(dissolve) {
         if (burstMode) {
-          // firework-style outward launch, gravity pulls it back down, fades out
           this.vy += 0.06;
           this.x += this.vx;
           this.y += this.vy;
@@ -560,7 +579,6 @@
       applyPointsToParticles(points);
     }
 
-    // Parametric heart curve -> point cloud, same particle pool reused
     function buildHeartParticles() {
       const points = [];
       const scale = Math.min(width, height) * 0.022;
@@ -570,9 +588,7 @@
       for (let t = 0; t < Math.PI * 2; t += 0.02) {
         const hx = 16 * Math.pow(Math.sin(t), 3);
         const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-        // outline point
         points.push({ x: cx + hx * scale, y: cy + hy * scale });
-        // fill points scattered inward toward center for a solid look
         for (let f = 0.2; f < 1; f += 0.2) {
           points.push({
             x: cx + hx * scale * f + (Math.random() - 0.5) * 4,
@@ -601,7 +617,6 @@
       }
     }
 
-    // Launch every current particle outward from center like a firework burst
     function launchBurst() {
       burstMode = true;
       const cx = width / 2;
@@ -610,14 +625,12 @@
         const angle = Math.atan2(p.y - cy, p.x - cx) || Math.random() * Math.PI * 2;
         const speed = 3 + Math.random() * 6;
         p.vx = Math.cos(angle) * speed;
-        p.vy = Math.sin(angle) * speed - 3; // extra upward kick
+        p.vy = Math.sin(angle) * speed - 3;
         p.alpha = 1;
       }
     }
 
-    /* =========================================
-       MOUSE / TOUCH SPARK TRAIL (extra bit of magic)
-    ========================================= */
+    /* Mouse & Touch Trail Sparks */
     const sparks = [];
     class Spark {
       constructor(x, y) {
@@ -661,16 +674,14 @@
       if (t) spawnSparks(t.clientX, t.clientY);
     }, { passive: true });
 
-    /* =========================================
-       CELEBRATION STAGE EXTRAS: confetti rain + random fireworks
-    ========================================= */
+    /* Confetti & Floating Hearts */
     let celebrating = false;
     const confetti = [];
 
     class Confetti {
       constructor() {
         this.reset();
-        this.y = Math.random() * -height; // pre-seed above screen so it isn't empty at start
+        this.y = Math.random() * -height;
       }
       reset() {
         this.x = Math.random() * width;
@@ -705,11 +716,10 @@
       for (let i = 0; i < 90; i++) confetti.push(new Confetti());
     }
 
-    // Floating hearts drifting upward during the celebration stage
     class FloatingHeart {
       constructor() {
         this.reset();
-        this.y = height + Math.random() * height; // pre-seed staggered start heights
+        this.y = height + Math.random() * height;
       }
       reset() {
         this.x = Math.random() * width;
@@ -745,7 +755,6 @@
       for (let i = 0; i < 22; i++) floatingHearts.push(new FloatingHeart());
     }
 
-    // Big low-opacity heart made of binary digits (0/1), pulsing behind the gift card
     let binaryClock = 0;
     function drawBinaryHeart() {
       binaryClock += 1;
@@ -775,12 +784,10 @@
       initFloatingHearts();
     }
 
-    /* =========================================
-       ANIMATION LOOP (MATRIX KEEPS RUNNING)
-    ========================================= */
+    /* Animation Loop */
     function animate() {
       drawStars();
-      drawMatrix(); // Matrix rain stays active continuously in the background
+      drawMatrix(); 
       
       for (let i = textParticles.length - 1; i >= 0; i--) {
         const tp = textParticles[i];
@@ -814,9 +821,6 @@
     }
     animate();
 
-    /* =========================================
-       SEQUENCE FLOW 
-    ========================================= */
     function showWord(word, duration) {
       return new Promise((resolve) => {
         dissolvingText = false; 
@@ -827,23 +831,19 @@
     }
 
     async function runSequence() {
-      // Brief matrix introduction
       await new Promise(r => setTimeout(r, 2800));
 
-      // Countdown Sequence (3 -> 2 -> 1)
       await showWord("3", 1100);
       await showWord("2", 1100);
       await showWord("1", 1100);
 
-      // Message Sequence
       await showWord("I", 2200);
       await showWord("Love", 2200);
       await showWord("YOU", 2200);
       await showWord("my", 1800);
       await showWord("lovely", 1800);
-       await showWord(" Girl<3", 1800);
+      await showWord(" Girl<3", 1800);
 
-      // CRAZY FINALE: letters morph into a beating heart, then fireworks out
       dissolvingText = false;
       burstMode = false;
       buildHeartParticles();
@@ -852,13 +852,10 @@
       launchBurst();
       await new Promise(r => setTimeout(r, 1000));
 
-      // Show Interactive Birthday Card
       cardStage.classList.add('show');
     }
 
-    /* =========================================
-       INTERACTION HANDLERS 
-    ========================================= */
+    /* Handlers */
     book.addEventListener('click', () => {
       if (!book.classList.contains('open')) {
         book.classList.add('open');
@@ -871,7 +868,7 @@
             size: Math.random() * 14 + 10
           }));
         }
-        celebrating = true; // let the loop draw/update these hearts even before the gift stage
+        celebrating = true; 
         setTimeout(() => {
           nextBtn.classList.add('show');
         }, 800);
@@ -882,8 +879,43 @@
       cardStage.classList.remove('show');
       setTimeout(() => {
         celebrationStage.classList.add('show');
-        startCelebrationExtras(); // confetti rain + floating hearts from here on
+        startCelebrationExtras(); 
       }, 500);
+    });
+
+    /* Bulletproof Teleport Logic (PC + Mobile + Tablet) */
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+    const questionContainer = document.getElementById('question-container');
+    const finalReveal = document.getElementById('final-reveal');
+
+    function teleportButton(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      const padding = 20;
+      const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+      const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+      
+      const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+      const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+      
+      noBtn.style.position = 'fixed';
+      noBtn.style.left = `${randomX}px`;
+      noBtn.style.top = `${randomY}px`;
+    }
+
+    // Listens for touch, click attempts, and mouse movement
+    noBtn.addEventListener('mouseover', teleportButton);
+    noBtn.addEventListener('touchstart', teleportButton, { passive: false });
+    noBtn.addEventListener('pointerdown', teleportButton);
+
+    yesBtn.addEventListener('click', () => {
+      questionContainer.style.display = 'none';
+      noBtn.style.display = 'none'; 
+      finalReveal.style.display = 'block';
     });
 
     runSequence();
